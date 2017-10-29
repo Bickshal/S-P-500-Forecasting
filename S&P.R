@@ -1,3 +1,6 @@
+
+
+
 rm(list=ls())
 
 
@@ -188,7 +191,7 @@ ggtsdisplay(SNP15diff)
 #Checking if differenced data of order 1 is stationary by carrying out ADF KPSS Test
 kpss.test(SNP15diff)
 adf.test(SNP15diff)
-# the differenced data of order 1 is determined  to be stationary
+#the differenced data of order 1 is determined  to be stationary
 
 #We now know the d part of our ARIMA model. Now we will determine the p and q part
 #We plot the ACF and PACF for our differenced data
@@ -303,10 +306,9 @@ ggplotly(t)
 # Exponential Time Series Forecasting makes use of weigted average past 
 # More Recent observations hold higher weights
 Expo <- ets(SNP15)
+Et <- forecast(Expo ,h =12)
 
-ExpoForecast <- forecast(Expo ,h =12)
-
-e <- MergeDF(SNP15,ExpoForecast)
+e <- MergeDF(SNP15,Et)
 
 ets <- ggplot(data = e, aes(x = month)) + 
   geom_line(aes(y = observed, colour = "Observed"), size = 1) + 
@@ -354,7 +356,7 @@ ggplotly(Naive)
 # for plotting the forecasted values
 pr1 <- as.data.frame(SP500ARIMA)
 pr2 <- as.data.frame(HoltWintersFitForecast)
-pr4 <- as.data.frame(ExpoForecast)
+pr4 <- as.data.frame(Et)
 pr5 <- as.data.frame(naiveForecast)
 
 pr1[2:5] <- NULL
@@ -394,7 +396,7 @@ dispaccu
 #***************************************************MODEL ERROR********************************************************
 ACCUA <- as.data.frame(accuracy(fit$fitted,SNP15))
 
-fit$fitted
+
 
 
 Holt <- as.ts(HoltWintersFit)

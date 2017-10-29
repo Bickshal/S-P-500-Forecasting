@@ -20,7 +20,7 @@ Forecasting of the stock market can be carried out vide two approaches: -
 
 In this project, we have attempted only the second approach i.e “Technical Analysis”.  The data for our project is obtained from “Yahoo Finance” and the forecasting techniques are implemented in R. 
 
-```{r warning=FALSE ,echo =FALSE}
+```{r warning=FALSE ,echo =FALSE, message= FALSE}
 library(fpp) # forecasting 
 library(astsa) # advanced stastical time series analysis
 library(forecast) #forecasting methodologies
@@ -547,3 +547,9 @@ By observing the above chart, we notice that ARIMA model gives us the lowest MAE
 
 #To conclude, Sometimes, a model which fits the data well does not necessarily perform/forecast well! This is because a perfect fit can always be obtained by using a model with appropriate number of parameters. We should always avoid over-fitting of data, as it does not give an insight to trend/pattern of the data. 
 
+#References
+1.Advantages of the mean absolute error (MAE) over the root mean square error (RMSE) in assessing average model performance - By Cort J. Willmott*, Kenji Matsuura
+2.Forecasting Uncertain Hotel Room Demand - By Mihir, Mounir and Paul ,Department of Electrical and Computer Engineering , Duke Univerisity
+3.Exponential Smoothing: The State of the Art - By EVERETTE S. GARDNER, Jr.
+4. Forecasting: Principles & Practice - By Rob J Hyndman
+5. Forecasting methods and stock market analysis - By Virginica Rusu and Cristian Rusu
