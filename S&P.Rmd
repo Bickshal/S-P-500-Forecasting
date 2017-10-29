@@ -1,7 +1,7 @@
 ---
 title: "Standard & Poor's 500 INDEX Forecasting (GSPC)"
 always_allow_html: yes
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -65,7 +65,7 @@ MergeDF <- function(dn,df){
 ```
 #Data Collection
 We have imported the data from Yahoo finance. We have extracted the daily adjusted closing price value of S&P 500 from 1st January 2006 to 31st December 2016. . The ticker symbol for S&P 500 is “GSPC”. 
-```{r warning = FALSE}
+```{r warning = FALSE,message= FALSE}
 startDate = as.Date("2006-01-01") 
 
 endDate = as.Date("2016-12-31")
@@ -82,7 +82,7 @@ In’R’,we use the ‘quantmod’ library to extract data of any stock. The `g
         The closing price provides us the value at which the stock closes at the end of the day. Now due to some management reason, the company decides to split the stock thereby decreasing the value of the stock price. Say if one stock of company is priced for at $100, the company splits one stock into two, thereby now the price of each stock is further split and is $50. So the opening price of the stock and the closing of the stock varies the following day. Hence for our paper we have only considered the adjusted value of the index, which takes into account the “stock split “factor.
 
 Since we are doing monthly forecasting, our extracted data is converted into monthly format.
-```{r echo = FALSE}
+```{r echo = FALSE,message= FALSE}
 # convert data into monthly wise
 GSPC_monthly <- to.monthly(GSPC)
 monthly <- as.vector(GSPC_monthly$GSPC.Adjusted)
@@ -99,7 +99,7 @@ Our S&P 500 Stock Index data is in the form of time-series; this means that our 
 ●	Heteroskedasticity:a data is heteroskedastic when its variability is not constant (i.e. its variance increases or decreases as a function of the explanatory variable).
 ●	Stationary:a stochastic process is called stationary if the mean and variance are constant (i.e. their joint distribution does not change over time).
 We start our analysis by plotting our time series to give us a basis about how to start our modeling.
-```{r echo = FALSE}
+```{r echo = FALSE,message= FALSE}
 S <- autoplot(SNP16, 
               main = "Plot of S&P 500 Time Series(2006-2016)", 
               ts.colour = "turquoise4", size=1.25) + 
