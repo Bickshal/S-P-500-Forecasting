@@ -96,15 +96,8 @@ Our S&P 500 Stock Index data is in the form of time-series; this means that our 
 ●	Stationary:a stochastic process is called stationary if the mean and variance are constant (i.e. their joint distribution does not change over time).
 We start our analysis by plotting our time series to give us a basis about how to start our modeling.
 ```{r echo = FALSE,message= FALSE}
-S <- autoplot(SNP16, 
-              main = "Plot of S&P 500 Time Series(2006-2016)", 
-              ts.colour = "turquoise4", size=1.25) + 
-  theme(panel.background = element_rect(fill = "gray98"),
-        axis.line   = element_line(colour="black"),
-        axis.line.x = element_line(colour="gray"),
-        axis.line.y = element_line(colour="gray")) + 
-  labs(x = "Year", y = "Adjusted Price")
-ggplotly(S)
+S <- plot(SNP16, 
+              main = "Plot of S&P 500 Time Series(2006-2016")
 ```
 Later we remove the year 2016 in order to compare our forecasted values with the real values.
 ```{r echo = FALSE}
@@ -112,16 +105,8 @@ Later we remove the year 2016 in order to compare our forecasted values with the
 SNP15<- ts(monthly,c(2006,1),c(2015,12),frequency=12)
 
 #plot of data from  2006 to 2015
-N <- autoplot(SNP15, 
-              main = "Plot of S & P 500 Time Series(2006-2015)",
-              ts.colour = "turquoise4", size=1) + 
-  theme(panel.background = element_rect(fill = "gray98"),
-        axis.ticks  = element_blank(),
-        axis.line   = element_line(colour="black"),
-        axis.line.x = element_line(colour="gray"),
-        axis.line.y = element_line(colour="gray")) + 
-  labs(x = "Year", y = "Adjusted Price")
-ggplotly(N)
+N <- plot(SNP15, 
+          main = "Plot of S&P 500 Time Series(2006-2016")
 ```
 From the plot we can see that there was certain dip in the stock prices between 2008 -2010.This is time when U.S market crashed.
 
@@ -130,9 +115,8 @@ When we plot, we observe a trend in our time-series, we further analyze our data
 ```{r echo = FALSE}
 x <- stl(SNP15,s.window= 'periodic')
 x
-stl <- autoplot(x, main = "Decomposition Plot of S&P 500 (2006-2015)",ts.colour = "turquoise4") +
+stl <- plot(x, main = "Decomposition Plot of S&P 500 (2006-2015)",ts.colour = "turquoise4") +
   theme(panel.background = element_rect(fill = "gray98"),axis.line.y   = element_line(colour="gray"),axis.line.x = element_line(colour="gray"))
-ggplotly(stl)
 ```
 #Seasonal trend of our data year wise
 In the year 2009 and 2013 , the trend is reversed. From the plot we can see there are no seasonal patterns, thus showing that our data is non-stationary. 
@@ -144,7 +128,7 @@ sp <- ggseasonplot(SNP15, xlab="Year",
   theme(panel.background = element_rect(fill = "gray98"),
         axis.line.y = element_line(colour="gray"),
         axis.line.x = element_line(colour="gray")) 
-ggplotly(sp)
+sp
 ```
 # Data Seasonality is checked - using ets() function
 Data is not seasonal
@@ -296,7 +280,7 @@ residFit <- ggplot(data=fit, aes(residuals(fit))) +
         axis.line.x = element_line(colour="gray")) +
   ggtitle("Plot of S&P 500 ARIMA Model Residuals") 
 
-ggplotly(residFit)
+residFit
 ```
 We notice that the distribution of the residuals in not perfect, the outliers can be attributed to the 2008 financial crisis. We now move to the forecasting stage.
 
@@ -318,11 +302,10 @@ r <- ggplot(data = x, aes(x = month)) +
   geom_ribbon(aes(ymin = lo95, ymax = hi95), alpha = .25) +
   geom_ribbon(aes(ymin = lo80, ymax = hi80), alpha = .25) +
   scale_x_yearmon(name = "Month / Year") +
-  scale_y_continuous(breaks = seq(0,850,by=50)) +
   theme(axis.text.x = element_text(size = 10)) + 
   ggtitle("'Arima Fit to Simulated Data\n (Orange  =Forecast, Turquoise = Fitted, Black = Data, shadow=95% conf. interval)')") +
   ylab ( " Adjusted Price of S&P500")
-ggplotly(r)
+r
 ```
 
 
@@ -350,11 +333,11 @@ t <- ggplot(data = h, aes(x = month)) +
   geom_ribbon(aes(ymin = lo95, ymax = hi95), alpha = .25) +
   geom_ribbon(aes(ymin = lo80, ymax = hi80), alpha = .25) +
   scale_x_yearmon(name = "Month / Year") +
-  scale_y_continuous(breaks = seq(0,850,by=50)) +
   theme(axis.text.x = element_text(size = 10)) + 
   ggtitle("'Holts Winter Model to Simulated Data\n (Orange = forecast, Red =fitted, Black = data, shadow=95% conf. interval)')") +
   ylab ( " Adjusted Price of S&P500")
-ggplotly(t)
+t
+
 ```
 
 #3. Exponential Smoothing Method:
@@ -421,11 +404,10 @@ ets <- ggplot(data = e, aes(x = month)) +
   geom_ribbon(aes(ymin = lo95, ymax = hi95), alpha = .25) +
   geom_ribbon(aes(ymin = lo80, ymax = hi80), alpha = .25) +
   scale_x_yearmon(name = "Month / Year") +
-  scale_y_continuous(breaks = seq(0,850,by=50)) +
   theme(axis.text.x = element_text(size = 10)) + 
   ggtitle("'Exponential Smoothing Forecasting\n (Orange = forecast, Blue = fitted, Black = data, shadow=95% conf. interval)')") +
   ylab ( " Adjusted Price of S&P500")
-ggplotly(ets)
+ets
 
 ```
 
@@ -444,11 +426,10 @@ Naive <- ggplot(data = na, aes(x = month)) +
   geom_ribbon(aes(ymin = lo95, ymax = hi95), alpha = .25) +
   geom_ribbon(aes(ymin = lo80, ymax = hi80), alpha = .25) +
   scale_x_yearmon(name = "Month / Year") +
-  scale_y_continuous(breaks = seq(0,850,by=50)) +
   theme(axis.text.x = element_text(size = 10)) + 
   ggtitle("'Naive Forecasting\n (Orange = forecast, Green = fitted, Black = data, shadow=95% conf. interval)')") +
   ylab ( "Adjusted Price of S&P500")
-ggplotly(Naive)
+Naive
 ```
 
 # Conclusion:
