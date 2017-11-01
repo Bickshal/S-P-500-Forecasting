@@ -78,7 +78,7 @@ In’R’,we use the ‘quantmod’ library to extract data of any stock. The `g
         The closing price provides us the value at which the stock closes at the end of the day. Now due to some management reason, the company decides to split the stock thereby decreasing the value of the stock price. Say if one stock of company is priced for at $100, the company splits one stock into two, thereby now the price of each stock is further split and is $50. So the opening price of the stock and the closing of the stock varies the following day. Hence for our paper we have only considered the adjusted value of the index, which takes into account the “stock split “factor.
 
 Since we are doing monthly forecasting, our extracted data is converted into monthly format.
-```{r echo = FALSE,message= FALSE}
+```{r echo = FALSE,message= FALSE,warning=FALSE}
 # convert data into monthly wise
 GSPC_monthly <- to.monthly(GSPC)
 monthly <- as.vector(GSPC_monthly$GSPC.Adjusted)
@@ -112,7 +112,7 @@ From the plot we can see that there was certain dip in the stock prices between 
 
 When we plot, we observe a trend in our time-series, we further analyze our data by decomposing. We break-down our time-series into its seasonal component, trend, and residuals/white noise using the `stl() function`.
 #Decomposition of the SNP15 data 
-```{r echo = FALSE}
+```{r echo = FALSE,warning=FALSE}
 x <- stl(SNP15,s.window= 'periodic')
 x
 stl <- plot(x, main = "Decomposition Plot of S&P 500 (2006-2015)",ts.colour = "turquoise4") +
@@ -120,7 +120,7 @@ stl <- plot(x, main = "Decomposition Plot of S&P 500 (2006-2015)",ts.colour = "t
 ```
 #Seasonal trend of our data year wise
 In the year 2009 and 2013 , the trend is reversed. From the plot we can see there are no seasonal patterns, thus showing that our data is non-stationary. 
-```{r echo = FALSE}
+```{r echo = FALSE,warning=FALSE}
 sp <- ggseasonplot(SNP15, xlab="Year", 
                    main="Seasonal Plot S&P 500 Index - Year Wise",
                    year.labels=TRUE, year.labels.left=TRUE, 
@@ -259,16 +259,15 @@ xyz <-auto.arima(SNP15)
 
 #1. ARIMA MODEL
 We have built our ARIMA model i. e p = 0 , d =1 and q = 0. We confirm if this is the best ARIMA model for the data from running the auto.arima() function. 
-```{ r echo =FALSE}
+```{r echo =FALSE,warning=FALSE}
 fit <- Arima(SNP15, order = c(0,1,0), include.drift = TRUE)
-
-#forecasting the next 12 months values
-# plotting standardized residuals , ACF and p -value of SNP15
-
+SP500ARIMA <- forecast(fit, h = 12)
 summary(SP500ARIMA)
 ```
+\n
 We further check if our ‘residuals’ are white noise and are following normal distribution. 
-```{ r echo =FALSE}
+```{r echo =FALSE,warning=FALSE ,message =FALSE}
+
 tsdiag(fit)
 residFit <- ggplot(data=fit, aes(residuals(fit))) + 
   geom_histogram(aes(y =..density..), 
@@ -282,17 +281,14 @@ residFit <- ggplot(data=fit, aes(residuals(fit))) +
 
 residFit
 ```
+\n
 We notice that the distribution of the residuals in not perfect, the outliers can be attributed to the 2008 financial crisis. We now move to the forecasting stage.
 
+\n
 Plotting the forecasted values
-```{r echo =FALSE}
-fit <- Arima(SNP15, order = c(0,1,0), include.drift = TRUE)
-
-SP500ARIMA <- forecast(fit, h = 12)
+```{r echo =FALSE,warning=FALSE ,message =FALSE}
 
 x <-MergeDF(SNP15,SP500ARIMA)
-
-library(ggplot2)
 
 r <- ggplot(data = x, aes(x = month)) + 
   geom_line(aes(y = observed, colour = "Observed"), size = 1) + 
@@ -308,22 +304,19 @@ r <- ggplot(data = x, aes(x = month)) +
 r
 ```
 
-
 #2. Holts - Winter Forcasting Model
-Holts Winter function has alpha , beta and gamma, 
+Holts Winter function has alpha , beta and gamma:
 * Alpha represents over all smoothing paramneter
 * Beta represents trend smoothing parameter
 * Gamma represents seasonal smoothing parameter
 
 The model by default is additive,as there is no sesonality in our data we set GAMMMA =FALSE in our Holts Winter Model
-```{r echo =FALSE}
+```{r echo = FALSE, warning=FALSE ,message =FALSE}
 HoltWintersFit <- HoltWinters(SNP15, gamma=FALSE)
 
 HoltWintersFitForecast <- forecast.HoltWinters(HoltWintersFit, h=12)
 
 h <-MergeDF(SNP15,HoltWintersFitForecast)
-
-library(ggplot2)
 
 t <- ggplot(data = h, aes(x = month)) + 
   geom_line(aes(y = observed, colour = "Observed"), size = 1) + 
@@ -343,53 +336,7 @@ t
 #3. Exponential Smoothing Method:
 In this methodology, more weightage is given to recent data points. The forecast is generally a flat-line.
 
-```{ r echo =FALSE}
-
-MergeDF <- function(dn,df){
-  require(zoo)
-  ds <-as.data.frame(window(dn))
-  names(ds) <- 'observed'
-  ds$month <- as.yearmon(time(window(dn)))
-  
-  dfit<-as.data.frame(df$fitted)
-  dfit$month<-as.yearmon(time(df$fitted))
-  names(dfit)[1]<-'fitted'
-  
-  ds<-merge(ds,dfit,all.x=T)
-  ds[,'forecast'] <- NA
-  ds[,'lo80'] <- NA
-  ds[,'hi80'] <- NA
-  ds[,'lo95'] <- NA
-  ds[,'hi95'] <- NA
-  
-  ds<-merge(ds,dfit,all.x=T) #Merge fitted values with source and training data
-  
-  fcastn<-as.data.frame(df)
-  fcastn$Month<-as.yearmon(row.names(fcastn))
-  names(fcastn)<-c('forecast','lo80','hi80','lo95','hi95','month')
-  
-  library(plyr) # for combining dataframe row wise
-  pd<-rbind.fill(ds,fcastn)
-  return(pd)
-  
-}
-
-
-startDate = as.Date("2006-01-01") 
-
-endDate = as.Date("2016-12-31")
-
-#getting data from yahoo finance using start and end date
-getSymbols("^GSPC", from = startDate, to = endDate,src="yahoo")
-
-# convert data into monthly wise
-GSPC_monthly <- to.monthly(GSPC)
-monthly <- as.vector(GSPC_monthly$GSPC.Adjusted)
-
-#data is split month wise from 2006 to 2016
-SNP16<- ts(monthly,c(2006,1),frequency=12)
-SNP15<- ts(monthly,c(2006,1),c(2015,12),frequency=12)
-
+```{r echo = FALSE, warning=FALSE ,message =FALSE}
 Expo <- ets(SNP15)
 
 Et <- forecast(Expo,h =12)
@@ -407,13 +354,14 @@ ets <- ggplot(data = e, aes(x = month)) +
   theme(axis.text.x = element_text(size = 10)) + 
   ggtitle("'Exponential Smoothing Forecasting\n (Orange = forecast, Blue = fitted, Black = data, shadow=95% conf. interval)')") +
   ylab ( " Adjusted Price of S&P500")
+  
 ets
 
 ```
 
 #4. Naive Method: 
 We incorporated this methodology, as it is one of the best model for financial time series object.
-```{r echo =FALSE}
+```{r echo = FALSE, warning=FALSE ,message =FALSE}
 naiveForecast <- naive(SNP15,h = 12)
 
 na <- MergeDF(SNP15,naiveForecast)
@@ -436,30 +384,14 @@ Naive
 After using the above stated forecasting techniques, we now generate the error values for all our methods. We consider the MAPE (Mean Absolute Percentage Error) and MAE (Mean Absolute Error) for our Error Evaluation. This is mainly because we are forecasting stock prices which will have absolute values. There is no need to consider a range of negative and positive errors as in the case of RMSE (Root Mean Square Error). RMSE is generally used when you need a wide variation of your error, as in the case of temperatures, where we get negatives and positive values. 
 
 #1. Forecasting Error 
-
 Below are the forecasted values of all our models:
-Table of Results
-```{r echo =FALSE}
-startDate = as.Date("2006-01-01") 
 
-endDate = as.Date("2016-12-31")
-
-#getting data from yahoo finance using start and end date
-getSymbols("^GSPC", from = startDate, to = endDate,src="yahoo")
-
-# convert data into monthly wise
-GSPC_monthly <- to.monthly(GSPC)
-monthly <- as.vector(GSPC_monthly$GSPC.Adjusted)
-
-#data is split month wise from 2006 to 2016
-SNP16<- ts(monthly,c(2006,1),frequency=12)
-SNP15<- ts(monthly,c(2006,1),c(2015,12),frequency=12)
+Table of Results :
+```{r echo = FALSE, warning=FALSE ,message =FALSE}
 
 Expo <- ets(SNP15)
-
 Et <- forecast(Expo,h =12)
 
-e <- MergeDF(SNP15,Et)
 pr1 <- as.data.frame(SP500ARIMA)
 pr2 <- as.data.frame(HoltWintersFitForecast)
 pr4 <- as.data.frame(Et)
@@ -484,7 +416,7 @@ colnames(results)<-c('Observed Value','ARIMA','Holts Winter', 'Exponential Smoot
 results
 ```
 Using the “accuracy ()” function in R we now generate the errors between the original data and the forecasted data for all our forecasting methods. 
-```{r echo =FALSE}
+```{r echo = FALSE, warning=FALSE ,message =FALSE}
 library(forecast)
 v <- as.data.frame(accuracy(results$ARIMA,results$`Observed Value`))
 y <- as.data.frame(accuracy(results$`Holts Winter`,results$`Observed Value`))
@@ -500,14 +432,12 @@ By observing the Error chart above, we see that the Holt’s Winter model has pe
 
 #2. Model Error
 This is mainly a backward-assessment to find the relative difference between the fitted data generated by the forecasting model and the actual data, prior to forecasting. 
-```{r echo =FALSE}
+```{r echo = FALSE, warning=FALSE ,message =FALSE}
 ACCUA <- as.data.frame(accuracy(fit$fitted,SNP15))
-
-
-
 
 Holt <- as.ts(HoltWintersFit)
 ACCUH <- as.data.frame(accuracy(Holt$fitted,SNP15))
+Expo <- ets(SNP15)
 
 Expo <- as.ts(Expo)
 ACCUE <- as.data.frame(accuracy(Expo))
@@ -522,7 +452,7 @@ dispaccu1
 ```
 By observing the above chart, we notice that ARIMA model gives us the lowest MAE and MAPE error – ‘0.5676’ and ‘3.8754’ respectively.
 
-#To conclude, Sometimes, a model which fits the data well does not necessarily perform/forecast well! This is because a perfect fit can always be obtained by using a model with appropriate number of parameters. We should always avoid over-fitting of data, as it does not give an insight to trend/pattern of the data. 
+###To conclude, Sometimes, a model which fits the data well does not necessarily perform/forecast well! This is because a perfect fit can always be obtained by using a model with appropriate number of parameters. We should always avoid over-fitting of data, as it does not give an insight to trend/pattern of the data. 
 
 #References
 1.Advantages of the mean absolute error (MAE) over the root mean square error (RMSE) in assessing average model performance - By Cort J. Willmott*, Kenji Matsuura
